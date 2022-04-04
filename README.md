@@ -122,16 +122,121 @@ The `hello-world-expressjs-docker` project has been tested locally and is ready 
 ## Push to Git
 
 ```bash
+# Add files with changes
+$ git add .
 
+# Check no files were missed
+$ git status
+
+# Commit
+$ git commit -m 'files added'
+
+# Update version
+$ npm version major
+
+# Push
+$ git push --follow-tags
 ```
+
+Open browser and navigate to https://github.com/jay-law/hello-world-expressjs-docker.  Confirm changes can be seen.
 
 ## Publish to npm Registry
 
-## Test Published Package
+### Manual Publish
+
+The first 
 
 ```bash
+# Login to npm
+$ npm login
 
+# Publish to npm registry
+$ npm publish --access public
 ```
 
+Open browser and navigate to https://www.npmjs.com/package/@jay-law/hello-world-expressjs-docker.  Confirm changes can be seen.
+
+### Automatic Publish
+
+1. Enable 'automation tokens' for publishing packages in npm
+    - Navigate to the package page - https://www.npmjs.com/package/@jay-law/hello-world-expressjs-docker
+    - Settings -> Publishing access -> Select 'Require two-factor authentication or automation tokens'
+    - Select 'Update Package Settings'
+    - Be sure to create an access token for your user if needed.  Guide - https://docs.npmjs.com/creating-and-viewing-access-tokens
+
+---
+
+**NOTE** - GitHub workflows are stored as part of the code in `.github/workflows/[yaml files]`.  As such, workflows can be created on the GitHub website or created locally then pushed.  The step below uses the website then pulls the code down.  See the `Other` section at the bottom of this `README` for directions on adding a workflow file manually.
+
+---
+
+2. Automate publishing in GitHub
+    - Create workflow 
+        - Navigate to the git repo
+        - Select 'Actions'
+        - Select 'Publish Node.js Package' then 'Configure'
+        - Make changes as needed to the pipeline
+        - Get the `NODE_AUTH_TOKEN` variable name.  It should be something like `${{secrets.npm_token}}`
+        - Select 'Start commit' to save
+    - Populate secret
+        - Go to Settings ->  Secrets -> Actions
+        - Select 'New repository secret'
+        - Add `npm_token` for the token name and your npm token for the value 
+
+3. Test the workflow/pipeline in GitHub
+    - Do a `git pull` locally to pull down the `.github` dir.  It contains the workflow config
+    - Do the normal git stuff then push
+    - Assuming all work so far has been on the main branch, a GitHub action should have been triggered
+    - Confirm the publish on the npmjs.com
+
+Pushes directly to the master branch should be disabled when coding in "real" environments.
 
 # Other
+
+## What is cat > [file name] << 'EOF'
+
+This commands allows files to be populated directly from information in the terminal.  It allows users to copy from this README and paste commands directly into the terminal.  
+
+It combines the `cat` command with the a ['here document'](https://tldp.org/LDP/abs/html/here-docs.html) code block.
+
+```bash
+# Here is a simple example.  Copy and paste this into your bash terminal
+$ cat > some_file.txt << 'EOF'
+hello friend
+EOF
+```
+
+## Add Workflow File Directly
+
+```bash
+# Create the npm-publish.yml and parent dirs
+mkdir --parents .github/workflows
+touch .github/workflows/npm-publish.yml
+
+# Populate the file
+$ cat > .github/workflows/npm-publish.yml << 'EOF'
+# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# For more information see: https://help.github.com/actions/language-and-framework-guides/publishing-nodejs-packages
+
+name: Publish Package
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+EOF
+```
+
