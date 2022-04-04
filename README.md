@@ -1,13 +1,50 @@
  
+# Overview
+
+This is a tutorial designed to walk users through the following steps:
+- Create a simple node package using ExpressJS as a web server
+- Run the package in a Docker container
+- Publish the node package to the npm registry
+- Automate the publishing of future packages
+
+It's more of a working example opposed to an in-depth tutorial.
+
+## Prerequisites
+
+- Publishing to the [npm-registry](https://www.npmjs.com) requires a npm account
+- An user [access token](https://docs.npmjs.com/creating-and-viewing-access-tokens) is required to automating package publishing
+- GitHub account for publishing code
+
+## Using this Tutorial
+
+Many of the commands provided below contain my GitHub username `jay-law` and my npm account name `jay-law`.  Replace my username with yours and everything should work.
+
+The published npm packages are scoped to a username so the package name (`hello-world-expressjs-docker`) can remain the same.
+
+npm example: 
+
+https://www.npmjs.com/package/@jay-law/hello-world-expressjs-docker
+
+should be 
+
+https://www.npmjs.com/package/@YOUR_NPM_USER_NAME/hello-world-expressjs-docker
+
+GitHub example:
+
+https://github.com/jay-law/hello-world-expressjs-docker
+
+should be
+
+https://github.com/YOUR_GITHUB_ACCOUNT_NAME/hello-world-expressjs-docker
 
 # Configure Local Environment
 
-## Install Libraries/Components
+## Tech Stack Used
 
-```bash
-npm
-docker
-```
+- Ubuntu - 20.04
+- Node - 17.8
+- npm - 8.5
+- Docker - 20.10
 
 ## Clone Repo
 
@@ -22,17 +59,18 @@ $ cd hello-world-expressjs-docker/
 ## Initalize Project
 
 ```bash
-# Initalize project - adds package.json
+# Initalize project - creates package.json
 $ npm init --scope=@jay-law
 
-# Add express - updates package.json
+# Add express - adds express to dependency in package.json
 $ npm install express
 
-# Install dependencies - Creates node_modules dir
+# Install dependencies - creates node_modules dir
 $ npm install
+# Keep hitting enter as the default values will be fine
 ```
 
-# Make Changes
+# Make Code Changes
 
 ## Create index.js
 
@@ -40,9 +78,8 @@ Express can act as a web server locally.  Create and run the index.js file which
 
 ```bash
 # Create the index.js file
-# Copy everything between 'cat' and the second EOF directly into 
-# console.  Or copy the contents directly into the file
-$ cat > index.js << EOF
+# See 'Other' section in the README for more info on this cat command
+$ cat > index.js << 'EOF'
 const express = require('express')
 const app = express()
 const port = 3000
@@ -58,20 +95,17 @@ EOF
 
 # Start server
 $ node index.js
-
-# Open browser and navigate to http://localhost:3000/
 ```
+
+Confirm server is running by opening browser and navigating to http://localhost:3000/.
 
 ## Create Dockerfile
 
-Docker will create an image from a Dockerfile (no extension).  Below a Dockerfile is populated then used to create an image.  The image is used to create a container.
+Create a docker container to host the Express app.  Docker will create an image from a Dockerfile (no filename extension).  Below a Dockerfile is populated then used to create an image.  The image is used to create a container.
 
 ```bash
-
 # Create the Dockerfile
-# Copy everything between 'cat' and the second EOF directly into 
-# console.  Or copy the contents directly into the file
-$ cat > Dockerfile << EOF
+$ cat > Dockerfile << 'EOF'
 FROM ubuntu:20.04
 
 WORKDIR /app
@@ -109,8 +143,13 @@ $  docker run --detach --rm \
     --publish 3000:3000/tcp \
     ubuntu-node:latest
 
-# Open browser and navigate to http://localhost:3000/
+# Confirm docker container is running
+$ docker container list
+```
 
+Confirm server is running by opening browser and navigating to http://localhost:3000/.
+
+```bash
 # Stop the container
 $ docker container kill ubuntu-node
 ```
@@ -121,7 +160,11 @@ The `hello-world-expressjs-docker` project has been tested locally and is ready 
 
 ## Push to Git
 
+Push the changes to GitHub.  
+
 ```bash
+# Run these commands any time a push is required
+
 # Add files with changes
 $ git add .
 
@@ -142,9 +185,11 @@ Open browser and navigate to https://github.com/jay-law/hello-world-expressjs-do
 
 ## Publish to npm Registry
 
+Publish the node package to the npm registry so other users can use it.
+
 ### Manual Publish
 
-The first 
+The first publish will be manual.  Future publishes can be automated.
 
 ```bash
 # Login to npm
@@ -166,7 +211,7 @@ Open browser and navigate to https://www.npmjs.com/package/@jay-law/hello-world-
 
 ---
 
-**NOTE** - GitHub workflows are stored as part of the code in `.github/workflows/[yaml files]`.  As such, workflows can be created on the GitHub website or created locally then pushed.  The step below uses the website then pulls the code down.  See the `Other` section at the bottom of this `README` for directions on adding a workflow file manually.
+**NOTE** - GitHub workflows are stored as part of the code in `.github/workflows/YAML_FILES`.  As such, workflows can be created on the GitHub website or created locally then pushed.  The step below uses the website then pulls the code down.  See the `Other` section at the bottom of this `README` for directions on adding a workflow file manually.
 
 ---
 
@@ -185,11 +230,13 @@ Open browser and navigate to https://www.npmjs.com/package/@jay-law/hello-world-
 
 3. Test the workflow/pipeline in GitHub
     - Do a `git pull` locally to pull down the `.github` dir.  It contains the workflow config
-    - Do the normal git stuff then push
+    - Commit and push
     - Assuming all work so far has been on the main branch, a GitHub action should have been triggered
-    - Confirm the publish on the npmjs.com
+    - Confirm the workflow completed successfully in GitHub under the Actions tab
+    - Confirm the package was published on the https://www.npmjs.com/package/@jay-law/hello-world-expressjs-docker
 
-Pushes directly to the master branch should be disabled when coding in "real" environments.
+
+**NOTE** - Pushes directly to the master branch should be disabled when coding in "real" environments.
 
 # Other
 
@@ -207,6 +254,8 @@ EOF
 ```
 
 ## Add Workflow File Directly
+
+Workflows can be added manually, opposed to GitHub's website, as they are defined as YAML code.  
 
 ```bash
 # Create the npm-publish.yml and parent dirs
@@ -240,3 +289,4 @@ jobs:
 EOF
 ```
 
+Add, commit, and push as normal.
